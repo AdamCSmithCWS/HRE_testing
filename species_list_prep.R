@@ -5,11 +5,13 @@ library(tidyverse)
 
 all <- load_bbs_data()
 species_list <- all$species %>%
-  filter(unid_combined == TRUE)
+  filter(unid_combined == TRUE,
+         !grepl("unid",english),
+         !grepl("Unid",english))
 
 bird <- all$birds %>%
   select(aou,route_data_id,species_total) %>%
-  left_join(.,species_list,
+  inner_join(.,species_list,
             by = "aou")
 
 route <- all$routes
@@ -32,9 +34,12 @@ sp_list <- sp_sum %>%
                         n_years > 20 &
                         n_routes > 2),
                         TRUE,FALSE))
-sp_list[,"vm"] <- rep(1:10,length.out = nrow(sp_list))
 
-saveRDS(sp_list, "species_list.rds")
+sp_list_mod <- sp_list %>%
+  filter(model)
+sp_list_mod[,"vm"] <- rep(1:10,length.out = nrow(sp_list_mod))
+
+saveRDS(sp_list_mod, "species_list.rds")
 
 
 

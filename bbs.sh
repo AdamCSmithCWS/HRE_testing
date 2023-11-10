@@ -4,7 +4,7 @@
 #SBATCH --job-name="bbsBayes2_test"
 
 for j in {1..8} ; do
-Rscript nohup bbs_script.R 1 j &> nohup_$j.out &
+nohup Rscript bbs_script.R 1 j &> nohup_$j.out &
 done
 
 
