@@ -11,12 +11,18 @@ args <- commandArgs(trailingOnly = TRUE) # to get the input files from command l
 machine <- args[1] #ids the vm
 i <- args[2] # ids the species to select (1:nspecies?)
 
+print(machine)
+print(i)
+
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm == machine)
 
-sp <- as.character(sp_list[i,"english"])
-aou <- sp_list[i,"aou"]
+print(nrow(sp_list))
 
+sp <- as.character(sp_list[i,"english"])
+print(sp)
+aou <- as.integer(sp_list[i,"aou"])
+print(aou)
 strat <- "bbs_cws"
 
 bbs_dat <- stratify(by = strat,
