@@ -9,17 +9,27 @@ library(doParallel)
 setwd("C:/github/HRE_testing")
 
 machine = 1
-n_cores = 3
+n_cores = 5
 
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm == machine,
          model == TRUE)
 
+completed_files <- list.files("output",pattern = "fit_")
+completed_aou <- as.integer(str_extract_all(completed_files,
+                             "[[:digit:]]{1,}",
+                             simplify = TRUE))
+  remaining <- sp_list %>%
+    filter(!aou %in% completed_aou)
+
+
+
+# build cluster -----------------------------------------------------------
+
 
 cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
-
 
 
 test <- foreach(i = 9:11, #nrow(sp_list),
