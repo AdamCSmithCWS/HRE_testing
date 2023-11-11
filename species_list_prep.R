@@ -35,9 +35,16 @@ sp_list <- sp_sum %>%
                         n_routes > 2),
                         TRUE,FALSE))
 
+#######  ADD in specific start years for some species
+
 sp_list_mod <- sp_list %>%
   filter(model)
 sp_list_mod[,"vm"] <- rep(1:10,length.out = nrow(sp_list_mod))
+
+
+
+
+
 
 saveRDS(sp_list_mod, "species_list.rds")
 

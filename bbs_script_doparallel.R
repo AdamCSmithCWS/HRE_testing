@@ -9,7 +9,7 @@ library(doParallel)
 setwd("C:/github/HRE_testing")
 
 machine = 1
-n_cores = 5
+n_cores = 4
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -20,7 +20,7 @@ completed_files <- list.files("output",pattern = "fit_")
 completed_aou <- as.integer(str_extract_all(completed_files,
                              "[[:digit:]]{1,}",
                              simplify = TRUE))
-  remaining <- sp_list %>%
+sp_list <- sp_list %>%
     filter(!aou %in% completed_aou)
 
 
@@ -32,7 +32,7 @@ cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
 
-test <- foreach(i = 9:11, #nrow(sp_list),
+test <- foreach(i = 1:9, #nrow(sp_list),
         .packages = c("bbsBayes2",
                       "tidyverse",
                       "cmdstanr"),
@@ -52,7 +52,7 @@ test <- foreach(i = 9:11, #nrow(sp_list),
   prepare_data(min_max_route_years = 2,
                quiet = TRUE)
 
-   if(nrow(s$meta_strata) == 1){next}
+   if(nrow(s$meta_strata) == 1){stop(paste("Only 1 stratum for",sp,"skipping to next species"))}
 
    if(nrow(s$meta_strata) > 3){
   bbs_dat <- prepare_spatial(s,
@@ -68,9 +68,9 @@ test <- foreach(i = 9:11, #nrow(sp_list),
    }
 
 fit <- run_model(model_data = bbs_dat,
-                 refresh = 100,
-                 iter_warmup = 300,
-                 iter_sampling = 100,
+                 #refresh = 100,
+                 #iter_warmup = 300,
+                 #iter_sampling = 100,
                  output_dir = "output",
                  output_basename = paste0("fit_",aou))
 
