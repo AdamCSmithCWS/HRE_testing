@@ -1,27 +1,29 @@
 ## testing bbsBayes2 parallel in HRE env
 
 shhh <- suppressPackageStartupMessages # so I don't get a bunch of start up messages in the output file, a tip I encountered while searching through StackOverflow...
-shhh(library(bbsBayes2))
-shhh(library(tidyverse))
+library(bbsBayes2)
+library(tidyverse)
 library(foreach)
 library(doParallel)
 
-setwd("C:/github/HRE_testing")
+#setwd("C:/github/HRE_testing")
+setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-machine = 2
-n_cores = 4
+output_dir <- "F:/HRE_testing/output"
+machine = 4
+n_cores = 8
 
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm == machine,
          model == TRUE)
 
-completed_files <- list.files("output",pattern = "fit_")
-completed_aou <- as.integer(str_extract_all(completed_files,
-                             "[[:digit:]]{1,}",
-                             simplify = TRUE))
-sp_list <- sp_list %>%
-    filter(!aou %in% completed_aou)
+# completed_files <- list.files("output",pattern = "fit_")
+# completed_aou <- as.integer(str_extract_all(completed_files,
+#                              "[[:digit:]]{1,}",
+#                              simplify = TRUE))
+# sp_list <- sp_list %>%
+#     filter(!aou %in% completed_aou)
 
 
 
@@ -32,7 +34,7 @@ cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
 
-test <- foreach(i = 1:9, #nrow(sp_list),
+test <- foreach(i = rev(1:nrow(sp_list)),
         .packages = c("bbsBayes2",
                       "tidyverse",
                       "cmdstanr"),
@@ -43,6 +45,7 @@ test <- foreach(i = 1:9, #nrow(sp_list),
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 
+    if(!file.exists(paste0(output_dir,"/fit_",aou,".rds"))){
 
 # identifying first years for selected species ----------------------------
     fy <- NULL
@@ -87,8 +90,10 @@ fit <- run_model(model_data = bbs_dat,
                  refresh = 100,
                  #iter_warmup = 300,
                  #iter_sampling = 100,
-                 output_dir = "output",
+                 output_dir = output_dir,
                  output_basename = paste0("fit_",aou))
+
+    }# end of if file.exists
 
   }
 
