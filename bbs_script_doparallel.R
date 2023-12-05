@@ -6,22 +6,34 @@ library(tidyverse)
 library(foreach)
 library(doParallel)
 
-setwd("C:/github/HRE_testing")
-#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+#setwd("C:/github/HRE_testing")
+setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
 output_dir <- "F:/HRE_testing/output"
-output_dir <- "output"
+#output_dir <- "output"
 
-re_run <- FALSE # set to TRUE if re-running poorly converged models
+re_run <- TRUE # set to TRUE if re-running poorly converged models
 
-machine = 9 #as of Nov 30, machine 8 remains to be run
-n_cores = 8
+machine = NULL#9 #as of Nov 30, machine 8 remains to be run
+n_cores = 3
 
-
+if(!is.null(machine)){
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm == machine,
          model == TRUE)
+}else{
+  sp_list <- readRDS("species_list.rds") %>%
+    filter(model == TRUE)
+}
 
+sp_rerun <- c("Prairie Falcon",
+              "Eastern Screech-Owl",
+              "Western Screech-Owl")
+
+if(re_run){
+  sp_list <- sp_list %>%
+    filter(english %in% sp_rerun)
+}
 # completed_files <- list.files("output",pattern = "fit_")
 # completed_aou <- as.integer(str_extract_all(completed_files,
 #                              "[[:digit:]]{1,}",
