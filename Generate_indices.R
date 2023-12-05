@@ -15,6 +15,7 @@ n_cores = 4
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)
 
+regs_to_estimate <- c("continent","country","prov_state","bcr","stratum","bcr_by_country")
 
 
 
@@ -58,8 +59,23 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
       fit <- readRDS(paste0(output_dir,"/fit_",aou,".rds"))
 
-      inds <- generate_indices(fit)
+      inds <- generate_indices(fit,
+                               alternate_n = "n_smooth",
+                               hpdi = TRUE,
+                               max_backcast = 15,
+                               n_obs_backcast = 2,
+                               regions = regs_to_estimate)
       saveRDS(inds,paste0("Indices/Inds_",aou,".rds"))
+
+      ind <- generate_indices(fit,
+                               alternate_n = "n",
+                               hpdi = TRUE,
+                               max_backcast = 15,
+                               n_obs_backcast = 2,
+                               regions = regs_to_estimate)
+      saveRDS(ind,paste0("Indices/Ind_plot_",aou,".rds"))
+
+
 
 
     }
