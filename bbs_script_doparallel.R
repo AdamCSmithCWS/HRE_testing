@@ -6,10 +6,14 @@ library(tidyverse)
 library(foreach)
 library(doParallel)
 
-#setwd("C:/github/HRE_testing")
-setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+setwd("C:/github/HRE_testing")
+#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
 output_dir <- "F:/HRE_testing/output"
+output_dir <- "output"
+
+re_run <- FALSE # set to TRUE if re-running poorly converged models
+
 machine = 9 #as of Nov 30, machine 8 remains to be run
 n_cores = 8
 
@@ -45,7 +49,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 
-    if(!file.exists(paste0(output_dir,"/fit_",aou,".rds"))){
+    if(!file.exists(paste0(output_dir,"/fit_",aou,".rds")) |
+       re_run){
 
 # identifying first years for selected species ----------------------------
     fy <- NULL
@@ -85,14 +90,22 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                      model = "gamye",
                      model_variant = "hier")
    }
-
+if(re_run){
 fit <- run_model(model_data = bbs_dat,
-                 refresh = 100,
-                 #iter_warmup = 300,
-                 #iter_sampling = 100,
+                 refresh = 400,
+                 iter_warmup = 2000,
+                 iter_sampling = 2000,
+                 thin = 2,
                  output_dir = output_dir,
                  output_basename = paste0("fit_",aou))
 
+}else{
+  fit <- run_model(model_data = bbs_dat,
+                   refresh = 400,
+                   output_dir = output_dir,
+                   output_basename = paste0("fit_",aou))
+
+}
     }# end of if file.exists
 
   }
