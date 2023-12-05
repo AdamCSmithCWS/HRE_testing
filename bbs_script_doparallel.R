@@ -10,7 +10,7 @@ library(doParallel)
 setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
 output_dir <- "F:/HRE_testing/output"
-machine = 4
+machine = 9 #as of Nov 30, machine 8 remains to be run
 n_cores = 8
 
 
