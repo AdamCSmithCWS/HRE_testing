@@ -5,11 +5,13 @@ library(foreach)
 library(doParallel)
 
 
-#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
-setwd("C:/GitHub/HRE_testing")
+setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+#setwd("C:/GitHub/HRE_testing")
 
 output_dir <- "output"
-n_cores = 4
+output_dir <- "F:/HRE_testing/output"
+
+n_cores = 10
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -68,6 +70,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
   }
 
 
+parallel::stopCluster(cluster)
 
 
 # Compile convergence values ----------------------------------------------
