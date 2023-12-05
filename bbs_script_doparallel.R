@@ -10,14 +10,30 @@ library(doParallel)
 setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
 output_dir <- "F:/HRE_testing/output"
-machine = 4
-n_cores = 8
+#output_dir <- "output"
 
+re_run <- TRUE # set to TRUE if re-running poorly converged models
 
+machine = NULL#9 #as of Nov 30, machine 8 remains to be run
+n_cores = 3
+
+if(!is.null(machine)){
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm == machine,
          model == TRUE)
+}else{
+  sp_list <- readRDS("species_list.rds") %>%
+    filter(model == TRUE)
+}
 
+sp_rerun <- c("Prairie Falcon",
+              "Eastern Screech-Owl",
+              "Western Screech-Owl")
+
+if(re_run){
+  sp_list <- sp_list %>%
+    filter(english %in% sp_rerun)
+}
 # completed_files <- list.files("output",pattern = "fit_")
 # completed_aou <- as.integer(str_extract_all(completed_files,
 #                              "[[:digit:]]{1,}",
@@ -45,7 +61,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 
-    if(!file.exists(paste0(output_dir,"/fit_",aou,".rds"))){
+    if(!file.exists(paste0(output_dir,"/fit_",aou,".rds")) |
+       re_run){
 
 # identifying first years for selected species ----------------------------
     fy <- NULL
@@ -85,14 +102,22 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                      model = "gamye",
                      model_variant = "hier")
    }
-
+if(re_run){
 fit <- run_model(model_data = bbs_dat,
-                 refresh = 100,
-                 #iter_warmup = 300,
-                 #iter_sampling = 100,
+                 refresh = 400,
+                 iter_warmup = 2000,
+                 iter_sampling = 2000,
+                 thin = 2,
                  output_dir = output_dir,
                  output_basename = paste0("fit_",aou))
 
+}else{
+  fit <- run_model(model_data = bbs_dat,
+                   refresh = 400,
+                   output_dir = output_dir,
+                   output_basename = paste0("fit_",aou))
+
+}
     }# end of if file.exists
 
   }
