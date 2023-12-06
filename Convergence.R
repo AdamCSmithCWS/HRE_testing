@@ -12,6 +12,7 @@ output_dir <- "output"
 output_dir <- "F:/HRE_testing/output"
 
 n_cores = 10
+re_run <- TRUE # set to TRUE if re-running poorly converged models
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -39,7 +40,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     aou <- as.integer(sp_list[i,"aou"])
 
     if(file.exists(paste0(output_dir,"/fit_",aou,".rds")) &
-       !file.exists(paste0("Convergence/summ_",aou,".rds"))){
+       (!file.exists(paste0("Convergence/summ_",aou,".rds")) | re_run )){
 
       # identifying first years for selected species ----------------------------
       fy <- NULL
