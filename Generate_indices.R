@@ -11,6 +11,7 @@ setwd("C:/GitHub/HRE_testing")
 output_dir <- "output"
 n_cores = 4
 
+re_run <- TRUE
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)
@@ -38,7 +39,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     aou <- as.integer(sp_list[i,"aou"])
 
     if(file.exists(paste0(output_dir,"/fit_",aou,".rds")) &
-       !file.exists(paste0("Indices/Inds_",aou,".rds"))){
+       (!file.exists(paste0("Indices/Inds_",aou,".rds")) | re_run)){
 
       # identifying first years for selected species ----------------------------
       fy <- NULL
@@ -81,5 +82,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
 
   }
+
+
+parallel::stopCluster(cluster)
 
 

@@ -22,10 +22,10 @@ regs_to_estimate <- c("continent","country","prov_state","bcr","stratum","bcr_by
 
 # load previous coverage data -----------------------------------------------------------
 
-lastyear = read.csv("data/All_2021_BBS_trends.csv",stringsAsFactors = F)
+lastyear = read_csv("data/All_2021_BBS_trends.csv")
 covs = lastyear[,c("species","bbs_num","Region","Region_alt","Trend_Time","reliab.cov")]
 
-
+lastyear_inds <- read_csv("data/All_2021_BBS_indices.csv")
 
 
 # build cluster -----------------------------------------------------------
@@ -73,7 +73,9 @@ test <- foreach(i = rev(1:nrow(sp_list)),
       ind <- readRDS(paste0("Indices/Ind_plot_",aou,".rds"))
 
 
-
+      lastyear_inds_sp <- lastyear_inds %>%
+        filter(bbs_num == aou,
+               Trend_Time == "Long-term")
 
       # species diagnostic trajectory plots -------------------------------------
 
@@ -111,6 +113,10 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                             axis_title_size = 10,
                             axis_text_size = 10)
 
+
+
+      traj_out <- vector("list",3)
+      names(traj_out) <- c("continent","Canada","United_States_of_America")
 
 
       pdf(file = paste0("Figures/diagnostic_trajectories/",species_f_bil,"_diagnostic_trajectories.pdf"),width = 11,height = 8.5)
@@ -156,12 +162,32 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                    q75_ste = min(upy*2,upy+(q75_ste*upy)),
                    q25_ste = max(0,upy+(q25_ste*upy)))
 
+          ly_inds <- lastyear_inds_sp %>%
+            filter(Region_alt == rr |
+                     Region == rr)
 
-          t1 <- t1 +
+          if(j == "continent"){
+            ly_inds <- lastyear_inds_sp %>%
+              filter(Region_alt == "Continental")
+          }
+          if(j == "CA"){
+            ly_inds <- lastyear_inds_sp %>%
+              filter(Region_alt == "CALIFORNIA")
+          }
+
+          t1plot <- t1 +
             geom_ribbon(data = n1, aes(x = year,y = index,ymin = index_q_0.05,ymax = index_q_0.95),
                         fill = grey(0.5),alpha = 0.2)+
             geom_line(data = n1, aes(x = year,y = index),
                       colour = grey(0.5))+
+            geom_line(data = ly_inds,
+                        aes(x = Year,
+                            y = Index_q_0.05),
+                        colour = "darkgreen",alpha = 0.2, linetype = 6)+
+            geom_line(data = ly_inds,
+                      aes(x = Year,
+                          y = Index_q_0.95),
+                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
             geom_pointrange(data = raw_tmp,
                             aes(x = year-0.1,y = mean_obs_eff,
                                 ymin = q25_obs,ymax = q75_obs),
@@ -183,13 +209,33 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
 
 
-        print(t1)
+        print(t1plot)
+
+        if(j %in% c("continent","Canada","United_States_of_America")){
+          t1save <- t1 +
+            geom_ribbon(data = n1, aes(x = year,y = index,ymin = index_q_0.05,ymax = index_q_0.95),
+                        fill = grey(0.5),alpha = 0.2)+
+            geom_line(data = n1, aes(x = year,y = index),
+                      colour = grey(0.5))+
+            geom_line(data = ly_inds,
+                      aes(x = Year,
+                          y = Index_q_0.05),
+                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
+            geom_line(data = ly_inds,
+                      aes(x = Year,
+                          y = Index_q_0.95),
+                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
+
+            labs(subtitle = labl)
+          traj_out[[j]] <- t1save
+        }
 
 
       }
 
       dev.off()  # close diagnostic trajectory plotting
 
+      saveRDS(traj_out,file = paste0("Figures/temp_rds_storage/",aou,"_highlevel_trajs.RDS"))
 
 
     }
@@ -197,4 +243,125 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
   }
 
+
+parallel::stopCluster(cluster)
+
+
+
+
+
+# Simple trajectory plots -----------------------------------------------------------
+
+
+cluster <- makeCluster(n_cores, type = "PSOCK")
+registerDoParallel(cluster)
+
+
+test <- foreach(i = rev(1:nrow(sp_list)),
+                .packages = c("bbsBayes2",
+                              "tidyverse",
+                              "cmdstanr"),
+                .errorhandling = "pass") %dopar%
+  {
+
+    # for(i in 1:4){
+    sp <- as.character(sp_list[i,"english"])
+    esp <- as.character(sp_list[i,"french"])
+    aou <- as.integer(sp_list[i,"aou"])
+    species_f_bil <- gsub(paste(esp,sp),pattern = "[[:space:]]|[[:punct:]]",
+                          replacement = "_")
+
+    traj_out <- vector("list",3)
+    names(traj_out) <- c("continent","Canada","United_States_of_America")
+
+    if(file.exists(paste0("Indices/Inds_",aou,".rds"))){
+
+
+
+      # identifying first years for selected species ----------------------------
+      fy <- 1970
+      if(aou %in% c(4661,4660)){ #Alder and Willow Flycatcher
+        fy <- 1978 #5 years after the split
+      }
+      if(aou %in% c(10,11,22860)){ # Clark's and Western Grebe and EUCD
+        fy <- 1990 #5 years after the split and first year EUCD observed on > 3 BBS routes
+      }
+      if(aou == 6121){ # CAve Swallow
+        fy = 1985
+      }
+
+
+
+      inds <- readRDS(paste0("Indices/Inds_",aou,".rds"))
+
+      ind <- readRDS(paste0("Indices/Ind_plot_",aou,".rds"))
+
+
+      trajs <- plot_indices(ind,
+                            title = FALSE,
+                            ci_width = 0.9,
+                            add_observed_means = FALSE,
+                            add_number_routes = FALSE,
+                            min_year = fy,
+                            title_size = 12,
+                            axis_title_size = 10,
+                            axis_text_size = 10)
+
+
+
+      pdf(file = paste0("Figures/Trajectories/",species_f_bil,"_trajectories.pdf"),width = 11,height = 8.5)
+
+      for(j in names(trajs)){
+        t1 <- trajs[[j]]
+        #t2 <- trajshort[[j]]
+        if(grepl("United_States_of_America",j)){
+          rr <- str_replace_all(j,"_"," ")
+        }else{
+          rr <- str_replace_all(j,"_","-")
+        }
+        rr <- str_replace_all(rr," BCR","-BCR")
+        rr <- str_replace_all(rr,"BCR ","BCR_")
+        rr <- str_replace_all(rr,"BCR-","BCR_")
+
+        labl <- paste(esp,"/",sp,"-",rr)
+
+        n1 <- inds$indices %>%
+          filter(region == rr,
+                 year >= fy)
+
+        strats <- str_split_1(unlist(n1[1,"strata_included"]),
+                              pattern = " ; ")
+        upy <- max(n1$index_q_0.95,na.rm = TRUE)/2
+
+
+        t1plot <- t1 +
+          geom_ribbon(data = n1, aes(x = year,y = index,ymin = index_q_0.05,ymax = index_q_0.95),
+                      fill = grey(0.5),alpha = 0.2)+
+          geom_line(data = n1, aes(x = year,y = index),
+                    colour = grey(0.5))+
+          labs(subtitle = labl)
+
+
+
+        print(t1plot)
+
+
+        if(j %in% c("continent","Canada","United_States_of_America")){
+
+          traj_out[[j]] <- t1plot
+        }
+
+
+      }
+
+      dev.off()  # close trajectory plotting
+      saveRDS(traj_out,file = paste0("Figures/temp_rds_storage/",aou,"_highlevel_simple_trajs.RDS"))
+
+      }
+
+
+  }
+
+
+parallel::stopCluster(cluster)
 
