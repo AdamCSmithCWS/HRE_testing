@@ -92,9 +92,6 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     aou <- as.integer(sp_list[i,"aou"])
     species_f_bil <- gsub(paste(esp,sp),pattern = "[[:space:]]|[[:punct:]]",
                           replacement = "_")
-    ## set three generations
-    ## unless < 10, then 10   or  unless > number of years available, then n-years
-    gen3 <- min((YYYY-fy),max(10,round(as.numeric(sp_list[i,"GenLength"])*3)))
 
 
     cov_sp <- covs %>%
@@ -116,6 +113,9 @@ test <- foreach(i = rev(1:nrow(sp_list)),
         fy = 1985
       }
 
+      ## set three generations
+      ## unless < 10, then 10   or  unless > number of years available, then n-years
+      gen3 <- min((YYYY-fy),max(10,round(as.numeric(sp_list[i,"GenLength"])*3)))
 
 
       inds <- readRDS(paste0("Indices/Inds_",aou,".rds"))
@@ -189,7 +189,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                  trend_time = j,
                  for_web = for_web_func(strata_included,strata_excluded),
                  indices_type = "full")%>%
-          mutate(across(where(is.double),~signif(.,3)))
+          mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
 
 
 
@@ -203,7 +203,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                  trend_time = j,
                  for_web = for_web_func(strata_included,strata_excluded),
                  indices_type = "smooth")%>%
-          mutate(across(where(is.double),~signif(.,3)))
+          mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
 
         inds_out <- bind_rows(inds_out,ind_tmp)
 
@@ -215,7 +215,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                coverage = reliab_func_cov(reliab.cov),
                backcast_reliab = reliab_func_backcast(backcast_flag),
                reliability = reliability_func(precision,coverage,backcast_reliab)) %>%
-        mutate(across(where(is.double),~signif(.,3)))
+        mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
 
       saveRDS(trends_out, file = paste0("Trends/",aou,"_trends.rds"))
 

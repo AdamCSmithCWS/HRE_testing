@@ -177,9 +177,65 @@ roll_trends_out <- roll_trends_out%>%
   mutate(species = sp,
          espece = esp,
          bbs_num = aou) %>%
-  mutate(across(where(is.double),~signif(.,3)))
+  mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
 
 saveRDS(roll_trends_out, file = paste0("Trends/Rolling_trends/",aou,"_rolling_trends.rds"))
+
+
+thresh30 = (0.7^(1/gen3)-1)*100
+thresh50 = (0.5^(1/gen3)-1)*100
+
+# plot rolling trend values against thresholds ----------------------------
+
+pdf(paste0("trends/rolling_trend_graphs/",species_f_bil,"_rolling_trends.pdf"),
+    width = 11,
+    height = 8.5)
+regs <- roll_trends_out %>%
+  select(region_type,region) %>%
+  distinct() %>%
+  mutate(region_type = factor(region_type,
+                              ordered = TRUE,
+                              levels = regs_to_estimate)) %>%
+  arrange(region_type)
+
+
+for(rr in regs$region){
+  rttmp <- roll_trends_out %>%
+    filter(region == rr)
+  rollTrend <- rttmp %>%
+    filter(end_year == YYYY) %>%
+    select(trend,prob_decrease_30_percent,prob_decrease_50_percent)
+  pth_30_labs <- paste0(round(rollTrend[,"prob_decrease_30_percent"],2)*100,
+                        "% probability of 30% decrease")
+  pth_50_labs <- paste0(round(rollTrend[,"prob_decrease_50_percent"],2)*100,
+                        "% probability of 50% decrease")
+  rtp <- ggplot(data = rttmp,
+                aes(y = trend,x = end_year))+
+    geom_errorbar(aes(ymin = trend_q_0.025,
+                      ymax = trend_q_0.975),
+                  width = 0,alpha = 0.2)+
+    geom_errorbar(aes(ymin = trend_q_0.25,
+                      ymax = trend_q_0.75),
+                  width = 0,alpha = 0.6)+
+    geom_point(aes(alpha = backcast_flag))+
+    scale_alpha_continuous(range = c(0.1,1))+
+    guides(alpha = "none")+
+    geom_hline(yintercept = thresh30,colour = "darkorange")+
+    geom_hline(yintercept = thresh50,colour = "darkred")+
+    geom_hline(yintercept = 0)+
+    labs(title = paste(sp,esp,"rolling",gen3,"year trends",rr),
+         subtitle = paste("Based on trend in",YYYY,":",pth_30_labs,"and",pth_50_labs))+
+    xlab(paste("Ending year of",gen3,"trend"))+
+    ylab(paste(gen3,"year trends"))+
+    theme_bw()
+
+  print(rtp)
+
+
+} #temp end loop
+
+dev.off()
+
 
 
 }
