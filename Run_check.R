@@ -76,3 +76,28 @@ for(i in 50:nrow(sp_list)){
 
 
   saveRDS(sp_track,paste0("Convergence/sp_track",as.character(Sys.info()["nodename"]),".rds"))
+
+
+  lastyear = read_csv("data/All_2021_BBS_trends.csv") %>%
+    filter(Region == "Continental",
+           Trend_Time == "Long-term")
+
+
+
+# combine and compare with last year --------------------------------------
+
+  sp_track_alt <- readRDS("sp_trackWNCRLABN72960.rds") %>%
+    ungroup() %>%
+    filter(test == "Complete")
+
+  sp_complete <- sp_track %>%
+    filter(!aou %in% sp_track_alt$aou) %>%
+    bind_rows(.,sp_track_alt)
+
+
+  sp_done <- sp_complete %>%
+    filter(test == "Complete")
+
+  sp_miss <- sp_complete %>% filter(grepl("Sufficient",test))
+
+  saveRDS(sp_miss,"species_missing.rds")

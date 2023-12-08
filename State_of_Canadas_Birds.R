@@ -180,9 +180,9 @@ readr::write_excel_csv(trends_socb,
 indices_round <- readRDS("output/allindices.rds")
 smooth_indices_round <- readRDS("output/allsmooth_indices.rds")
 smooth_join <- smooth_indices_round %>%
-  select(species,Region,Region_type,Trend_Time,
-         Year,Index) %>%
-  rename(smooth_index = Index)
+  select(species,region,region_type,trend_time,
+         year,index) %>%
+  rename(smooth_index = index)
 
 indices_socb <- indices_round %>%
   filter((For_web == TRUE | Region %in% c("Continental","US"))) %>%
