@@ -6,12 +6,10 @@ library(foreach)
 library(doParallel)
 
 #setwd("C:/github/HRE_testing")
-setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-output_dir <- "F:/HRE_testing/output"
-#output_dir <- "output"
-
-n_cores = 3
+#output_dir <- "F:/HRE_testing/output"
+output_dir <- "output"
 
 
   sp_list <- readRDS("species_list.rds") %>%
