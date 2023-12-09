@@ -24,7 +24,10 @@ for(i in 50:nrow(sp_list)){
   aou <- as.integer(sp_list[i,"aou"])
 
   if(!file.exists(paste0(output_dir,"/fit_",aou,".rds"))){
-
+  if(!file.exists(paste0(output_dir,"/fit_",aou,"-1.csv"))){
+    sp_track[i,"test"] <- paste0("Running_",as.character(Sys.info()["nodename"]))
+    next
+  }
     # identifying first years for selected species ----------------------------
     fy <- NULL
     if(aou %in% c(4661,4660)){ #Alder and Willow Flycatcher
