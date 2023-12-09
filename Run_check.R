@@ -8,8 +8,8 @@ library(doParallel)
 #setwd("C:/github/HRE_testing")
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-#output_dir <- "F:/HRE_testing/output"
-output_dir <- "output"
+output_dir <- "F:/HRE_testing/output"
+#output_dir <- "output"
 
 
   sp_list <- readRDS("species_list.rds") %>%
@@ -17,6 +17,7 @@ output_dir <- "output"
 
   sp_track <- sp_list
 
+  complete_running_only <- TRUE # change to FALSE if assessing whether species could be run
 
 for(i in 1:nrow(sp_list)){
 
@@ -28,6 +29,7 @@ for(i in 1:nrow(sp_list)){
     sp_track[i,"test"] <- paste0("Running_",as.character(Sys.info()["nodename"]))
     next
   }
+    if(complete_running_only){next}
     # identifying first years for selected species ----------------------------
     fy <- NULL
     if(aou %in% c(4661,4660)){ #Alder and Willow Flycatcher
@@ -81,13 +83,7 @@ for(i in 1:nrow(sp_list)){
   saveRDS(sp_track,paste0("sp_track",as.character(Sys.info()["nodename"]),".rds"))
 
 
-  lastyear = read_csv("data/All_2021_BBS_trends.csv") %>%
-    filter(Region == "Continental",
-           Trend_Time == "Long-term")
 
-
-
-# combine and compare with last year --------------------------------------
 
   sp_track_alt <- readRDS("sp_trackWNCRLABN72960.rds") %>%
     ungroup() %>%
@@ -104,3 +100,15 @@ for(i in 1:nrow(sp_list)){
   sp_miss <- sp_complete %>% filter(grepl("Sufficient",test))
 
   saveRDS(sp_miss,"species_missing.rds")
+
+
+
+
+
+  # combine and compare with last year --------------------------------------
+
+
+  lastyear = read_csv("data/All_2021_BBS_trends.csv") %>%
+    filter(Region == "Continental",
+           Trend_Time == "Long-term")
+
