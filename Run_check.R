@@ -18,13 +18,13 @@ output_dir <- "output"
   sp_track <- sp_list
 
 
-for(i in 50:nrow(sp_list)){
+for(i in 1:nrow(sp_list)){
 
   sp <- as.character(sp_list[i,"english"])
   aou <- as.integer(sp_list[i,"aou"])
 
   if(!file.exists(paste0(output_dir,"/fit_",aou,".rds"))){
-  if(!file.exists(paste0(output_dir,"/fit_",aou,"-1.csv"))){
+  if(file.exists(paste0(output_dir,"/fit_",aou,"-1.csv"))){
     sp_track[i,"test"] <- paste0("Running_",as.character(Sys.info()["nodename"]))
     next
   }
@@ -78,7 +78,7 @@ for(i in 50:nrow(sp_list)){
 }
 
 
-  saveRDS(sp_track,paste0("Convergence/sp_track",as.character(Sys.info()["nodename"]),".rds"))
+  saveRDS(sp_track,paste0("sp_track",as.character(Sys.info()["nodename"]),".rds"))
 
 
   lastyear = read_csv("data/All_2021_BBS_trends.csv") %>%
