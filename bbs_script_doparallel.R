@@ -18,8 +18,8 @@ re_run <- FALSE # set to TRUE if re-running poorly converged models
 miss <- TRUE
 
 
-machine = 6#9 #as of Nov 30, machine 8 remains to be run
-n_cores = 4
+machine = 7#9 #as of Nov 30, machine 8 remains to be run
+n_cores <- floor((detectCores()-1)/4) # requires 4 cores per species
 
 if(!is.null(machine)){
 sp_list <- readRDS("species_list.rds") %>%

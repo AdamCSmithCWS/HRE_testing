@@ -87,7 +87,9 @@ for(i in 1:nrow(sp_list)){
 
   sp_track_alt <- readRDS("sp_trackWNCRLABN72960.rds") %>%
     ungroup() %>%
-    filter(test == "Complete")
+    mutate(test = ifelse(aou %in% c(5110,5600,4980,3900),
+                         "Running_ECCClaptop",test)) %>%
+    filter(test == "Complete" | grepl("Running",test))
 
   sp_complete <- sp_track %>%
     filter(!aou %in% sp_track_alt$aou) %>%
@@ -95,7 +97,7 @@ for(i in 1:nrow(sp_list)){
 
 
   sp_done <- sp_complete %>%
-    filter(test == "Complete")
+    filter(test == "Complete" | grepl("Running",test))
 
   sp_miss <- sp_complete %>% filter(grepl("Sufficient",test))
 
