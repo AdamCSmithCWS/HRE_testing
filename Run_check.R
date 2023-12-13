@@ -8,7 +8,8 @@ library(doParallel)
 #setwd("C:/github/HRE_testing")
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-output_dir <- "F:/HRE_testing/output"
+#output_dir <- "F:/HRE_testing/output"
+output_dir <- "D:/output_BBS"
 #output_dir <- "output"
 
 
@@ -17,7 +18,7 @@ output_dir <- "F:/HRE_testing/output"
 
   sp_track <- sp_list
 
-  complete_running_only <- TRUE # change to FALSE if assessing whether species could be run
+  complete_running_only <- FALSE # change to FALSE if assessing whether species could be run
 
 for(i in 1:nrow(sp_list)){
 
@@ -83,19 +84,21 @@ for(i in 1:nrow(sp_list)){
   saveRDS(sp_track,paste0("sp_track",as.character(Sys.info()["nodename"]),".rds"))
 
 
+  sp_complete <- sp_track
 
-
-  sp_track_alt <- readRDS("sp_trackWNCRLABN72960.rds") %>%
-    ungroup() %>%
-    filter(test == "Complete")
-
-  sp_complete <- sp_track %>%
-    filter(!aou %in% sp_track_alt$aou) %>%
-    bind_rows(.,sp_track_alt)
+  # sp_track_alt <- readRDS("sp_trackWNCRLABN72960.rds") %>%
+  #   ungroup() %>%
+  #   mutate(test = ifelse(aou %in% c(5110,5600,4980,3900),
+  #                        "Running_ECCClaptop",test)) %>%
+  #   filter(test == "Complete" | grepl("Running",test))
+  #
+  # sp_complete <- sp_track %>%
+  #   filter(!aou %in% sp_track_alt$aou) %>%
+  #   bind_rows(.,sp_track_alt)
 
 
   sp_done <- sp_complete %>%
-    filter(test == "Complete")
+    filter(test == "Complete" | grepl("Running",test))
 
   sp_miss <- sp_complete %>% filter(grepl("Sufficient",test))
 

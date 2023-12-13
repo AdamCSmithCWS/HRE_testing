@@ -21,6 +21,8 @@ csv_recover <- TRUE
 machine = 2#9 #as of Nov 30, machine 8 remains to be run
 n_cores = 4
 
+n_cores <- floor((detectCores()-1)/4) # requires 4 cores per species
+
 if(!is.null(machine)){
 sp_list <- readRDS("species_list.rds") %>%
   filter(vm %in% machine,

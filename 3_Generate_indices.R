@@ -8,10 +8,10 @@ library(doParallel)
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 setwd("C:/GitHub/HRE_testing")
 
-output_dir <- "output"
-n_cores = 4
+output_dir <- "D:/output_BBS"
+n_cores = 2
 
-re_run <- TRUE
+re_run <- FALSE
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)
@@ -23,18 +23,18 @@ regs_to_estimate <- c("continent","country","prov_state","bcr","bcr_by_country",
 # build cluster -----------------------------------------------------------
 
 
-cluster <- makeCluster(n_cores, type = "PSOCK")
-registerDoParallel(cluster)
+# cluster <- makeCluster(n_cores, type = "PSOCK")
+# registerDoParallel(cluster)
+#
+#
+# test <- foreach(i = rev(1:nrow(sp_list)),
+#                 .packages = c("bbsBayes2",
+#                               "tidyverse",
+#                               "cmdstanr"),
+#                 .errorhandling = "pass") %dopar%
+#   {
 
-
-test <- foreach(i = rev(1:nrow(sp_list)),
-                .packages = c("bbsBayes2",
-                              "tidyverse",
-                              "cmdstanr"),
-                .errorhandling = "pass") %dopar%
-  {
-
-    # for(i in 1:4){
+ for(i in rev(1:nrow(sp_list))){
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 
@@ -80,7 +80,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
     }
 
-
+print(round(i/nrow(sp_list),2))
   }
 
 
