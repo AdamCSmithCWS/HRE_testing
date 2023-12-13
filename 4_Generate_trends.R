@@ -18,7 +18,8 @@ source("functions/reliability.R")
 
 
 
-n_cores = 12
+n_cores = 10
+re_run <- FALSE
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -96,7 +97,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     cov_sp <- covs %>%
       filter(bbs_num == aou)
 
-    if(file.exists(paste0("Indices/Inds_",aou,".rds"))){
+    if(file.exists(paste0("Indices/Inds_",aou,".rds")) &
+       (!file.exists(paste0("Trends/",aou,"_trends.rds")) | re_run)){
 
 
 

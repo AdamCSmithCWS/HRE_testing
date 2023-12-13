@@ -20,6 +20,7 @@ source("functions/reliability.R")
 
 output_dir <- "output"
 n_cores = 4
+re_run <- FALSE #set to TRUE to overwrite any previous output from this script
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -97,7 +98,9 @@ test <- foreach(i = rev(c(1:99,131:nrow(sp_list))),
     cov_sp <- covs %>%
       filter(bbs_num == aou)
 
-    if(file.exists(paste0("Indices/Inds_",aou,".rds"))){
+    if(file.exists(paste0("Indices/Inds_",aou,".rds")) &
+       file.exists(paste0("Figures/temp_rds_storage/",aou,"_highlevel_simple_trajs.RDS")) &
+       (!file.exists(paste0("Trends/Rolling_trends/",aou,"_rolling_trends.rds")) | re_run)){
 
 
 
