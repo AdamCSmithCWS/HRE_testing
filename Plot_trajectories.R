@@ -12,7 +12,7 @@ short_time <- 10
 setwd("C:/GitHub/HRE_testing")
 
 output_dir <- "output"
-n_cores = 4
+n_cores = 12
 
 
 sp_list <- readRDS("species_list.rds") %>%

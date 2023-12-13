@@ -5,14 +5,15 @@ library(foreach)
 library(doParallel)
 
 
-setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
-#setwd("C:/GitHub/HRE_testing")
+#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+setwd("C:/GitHub/HRE_testing")
 
-output_dir <- "output"
-output_dir <- "F:/HRE_testing/output"
+# output_dir <- "output"
+# output_dir <- "F:/HRE_testing/output"
+output_dir <- "D:/output_BBS"
 
-n_cores = 10
-re_run <- TRUE # set to TRUE if re-running poorly converged models
+n_cores = 2
+re_run <- FALSE # set to TRUE if re-running poorly converged models
 
 
 sp_list <- readRDS("species_list.rds") %>%
