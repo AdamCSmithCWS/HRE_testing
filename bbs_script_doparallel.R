@@ -9,16 +9,16 @@ library(doParallel)
 setwd("C:/github/HRE_testing")
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-#output_dir <- "F:/HRE_testing/output"
+output_dir <- "F:/HRE_testing/output"
 output_dir <- "output"
 
 re_run <- FALSE # set to TRUE if re-running poorly converged models
 
 
-miss <- TRUE
+miss <- FALSE
+csv_recover <- TRUE
 
-
-machine = 6#9 #as of Nov 30, machine 8 remains to be run
+machine = 2#9 #as of Nov 30, machine 8 remains to be run
 n_cores = 4
 
 if(!is.null(machine)){
@@ -108,6 +108,15 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                      model = "gamye",
                      model_variant = "hier")
    }
+
+   if(csv_recover){
+     fit <- bbs_dat
+     csv_files <- paste0(output_dir,"/fit_",aou,"-",c(2:4),".csv")
+      fit[["model_fit"]] <- cmdstanr::as_cmdstan_fit(files = csv_files)
+      save_model_run(fit,retain_csv = TRUE)
+
+     next}
+
 if(re_run){
 fit <- run_model(model_data = bbs_dat,
                  refresh = 400,
@@ -124,6 +133,8 @@ fit <- run_model(model_data = bbs_dat,
                    output_basename = paste0("fit_",aou))
 
 }
+
+
     }# end of if file.exists
 
   }
