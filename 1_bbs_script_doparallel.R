@@ -6,22 +6,22 @@ library(tidyverse)
 library(foreach)
 library(doParallel)
 
-setwd("C:/github/HRE_testing")
-#setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
+#setwd("C:/github/HRE_testing")
+setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
 output_dir <- "F:/HRE_testing/output"
-output_dir <- "output"
+#output_dir <- "output"
 
 re_run <- FALSE # set to TRUE if re-running poorly converged models
 
 
-miss <- FALSE
-csv_recover <- TRUE
+miss <- TRUE
+csv_recover <- FALSE
 
 machine = 2#9 #as of Nov 30, machine 8 remains to be run
-n_cores = 4
+n_cores = 8
 
-n_cores <- floor((detectCores()-1)/4) # requires 4 cores per species
+#n_cores <- floor((detectCores()-1)/4) # requires 4 cores per species
 
 if(!is.null(machine)){
 sp_list <- readRDS("species_list.rds") %>%
@@ -34,8 +34,7 @@ sp_list <- readRDS("species_list.rds") %>%
 
 if(miss){
   sp_list <- readRDS("species_missing.rds") %>%
-    filter(vm %in% machine,
-           model == TRUE)
+    filter(model == TRUE)
 }
 
 if(re_run){
@@ -49,8 +48,9 @@ if(re_run){
 # sp_list <- sp_list %>%
 #     filter(!aou %in% completed_aou)
 
+sp_list <- sp_list %>% filter(!aou %in% c(6882,5630,4090))
 
-
+i <- which(sp_list$aou == 6882)
 # build cluster -----------------------------------------------------------
 
 
@@ -135,6 +135,7 @@ fit <- run_model(model_data = bbs_dat,
                    output_basename = paste0("fit_",aou))
 
 }
+
 
 
     }# end of if file.exists
