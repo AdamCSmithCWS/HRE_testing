@@ -9,7 +9,7 @@ library(doParallel)
 setwd("C:/GitHub/HRE_testing")
 
 output_dir <- "D:/output_BBS"
-n_cores = 2
+n_cores = 3
 
 re_run <- FALSE
 
@@ -23,18 +23,18 @@ regs_to_estimate <- c("continent","country","prov_state","bcr","bcr_by_country",
 # build cluster -----------------------------------------------------------
 
 
-# cluster <- makeCluster(n_cores, type = "PSOCK")
-# registerDoParallel(cluster)
-#
-#
-# test <- foreach(i = rev(1:nrow(sp_list)),
-#                 .packages = c("bbsBayes2",
-#                               "tidyverse",
-#                               "cmdstanr"),
-#                 .errorhandling = "pass") %dopar%
-#   {
+cluster <- makeCluster(n_cores, type = "PSOCK")
+registerDoParallel(cluster)
 
- for(i in rev(1:nrow(sp_list))){
+
+test <- foreach(i = rev(1:nrow(sp_list)),
+                .packages = c("bbsBayes2",
+                              "tidyverse",
+                              "cmdstanr"),
+                .errorhandling = "pass") %dopar%
+  {
+
+ #for(i in rev(1:nrow(sp_list))){
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 

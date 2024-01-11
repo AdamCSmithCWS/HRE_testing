@@ -18,8 +18,8 @@ source("functions/reliability.R")
 
 
 
-n_cores = 10
-re_run <- FALSE
+n_cores = 16
+re_run <- TRUE
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -35,14 +35,14 @@ covs = lastyear[,c("species","bbs_num","Region","Region_alt","Trend_Time","relia
          Region = ifelse(Region_alt == "Canada","Canada",Region),
          Region = ifelse(Region == "US","United States of America",Region))
 
-three_gens <- read_csv("data/full_bbs_species_list_w3_generations.csv")
+three_gens <- read_csv("data/full_bbs_species_list_w_generation_length.csv")
 
 three_gens <- three_gens %>%
-  select(sp.bbs,GenLength)
+  select(aou,GenLength)
 
 sp_list <- sp_list %>%
   inner_join(.,three_gens,
-             by = c("aou" = "sp.bbs"))
+             by = c("aou"))
 
 
 
@@ -189,8 +189,9 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                  bbs_num = aou,
                  trend_time = j,
                  for_web = for_web_func(strata_included,strata_excluded),
-                 indices_type = "full")%>%
-          mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
+                 indices_type = "full") %>%
+          mutate(across(where(is.double) & !contains("year") &
+                          !starts_with("n_") & !starts_with("bbs_num"),~signif(.,3)))
 
 
 
@@ -204,7 +205,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                  trend_time = j,
                  for_web = for_web_func(strata_included,strata_excluded),
                  indices_type = "smooth")%>%
-          mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
+          mutate(across(where(is.double) & !contains("year") &
+                          !starts_with("n_") & !starts_with("bbs_num"),~signif(.,3)))
 
         inds_out <- bind_rows(inds_out,ind_tmp)
 
@@ -216,7 +218,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                coverage = reliab_func_cov(reliab.cov),
                backcast_reliab = reliab_func_backcast(backcast_flag),
                reliability = reliability_func(precision,coverage,backcast_reliab)) %>%
-        mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
+        mutate(across(where(is.double) & !contains("year") &
+                        !starts_with("n_") & !starts_with("bbs_num"),~signif(.,3)))
 
       saveRDS(trends_out, file = paste0("Trends/",aou,"_trends.rds"))
 

@@ -13,7 +13,7 @@ setwd("C:/GitHub/HRE_testing")
 output_dir <- "D:/output_BBS"
 
 n_cores = 2
-re_run <- FALSE # set to TRUE if re-running poorly converged models
+re_run <- FALSE # set to TRUE if re-assessing convergence of models
 
 
 sp_list <- readRDS("species_list.rds") %>%
@@ -99,10 +99,29 @@ summ_comb <- bind_rows(summ_comb,
 
 }
 
+saveRDS(summ_comb,"Convergence/All_species_convergence_summary.rds")
+
+
+
 fail <- summ_comb %>%
   filter(rhat > 1.05) %>%
   mutate(variable_type = str_extract(variable,"^\\w+")) %>%
   group_by(species,sp_n,variable_type) %>%
   summarise(n_fail = n(),
             max_rhat = max(rhat))
+
+
+sp <- "Sandhill Crane"
+sp_sel <- summ_comb %>%
+  filter(species == sp) %>%
+  mutate(variable_type = str_extract(variable,"^\\w+"))
+
+
+sdste <- sp_sel %>%
+  filter(grepl("sdste",variable_type))
+ste <- sp_sel %>%
+  filter(grepl("ste_raw",variable_type)) %>%
+  mutate(scaled_mean = mean*as.numeric(sdste$mean),
+         scaled_lci = q5*as.numeric(sdste$mean),
+         scaled_uci = q95*as.numeric(sdste$mean))
 

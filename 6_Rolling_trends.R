@@ -6,7 +6,7 @@ library(doParallel)
 library(patchwork)
 
 YYYY <- 2022
-short_time <- 10
+short_time <- 12
 
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 setwd("C:/GitHub/HRE_testing")
@@ -19,7 +19,7 @@ source("functions/reliability.R")
 
 
 output_dir <- "output"
-n_cores = 4
+n_cores = 16
 re_run <- FALSE #set to TRUE to overwrite any previous output from this script
 
 
@@ -36,14 +36,15 @@ covs = lastyear[,c("species","bbs_num","Region","Region_alt","Trend_Time","relia
          Region = ifelse(Region_alt == "Canada","Canada",Region),
          Region = ifelse(Region == "US","United States of America",Region))
 
-three_gens <- read_csv("data/full_bbs_species_list_w3_generations.csv")
+
+three_gens <- read_csv("data/full_bbs_species_list_w_generation_length.csv")
 
 three_gens <- three_gens %>%
-  select(sp.bbs,GenLength)
+  select(aou,GenLength)
 
 sp_list <- sp_list %>%
   inner_join(.,three_gens,
-             by = c("aou" = "sp.bbs"))
+             by = c("aou"))
 
 
 
@@ -80,7 +81,7 @@ cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
 
-test <- foreach(i = rev(c(1:99,131:nrow(sp_list))),
+test <- foreach(i = rev(c(1:nrow(sp_list))),
                 .packages = c("bbsBayes2",
                               "tidyverse",
                               "cmdstanr",
@@ -180,7 +181,8 @@ roll_trends_out <- roll_trends_out%>%
   mutate(species = sp,
          espece = esp,
          bbs_num = aou) %>%
-  mutate(across(where(is.double) & !contains("year") & !starts_with("n_"),~signif(.,3)))
+  mutate(across(where(is.double) & !contains("year") &
+                  !starts_with("n_") & !starts_with("bbs_num"),~signif(.,3)))
 
 saveRDS(roll_trends_out, file = paste0("Trends/Rolling_trends/",aou,"_rolling_trends.rds"))
 

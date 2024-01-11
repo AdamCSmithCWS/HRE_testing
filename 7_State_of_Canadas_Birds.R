@@ -8,6 +8,8 @@ webmaps <- FALSE # set to true if needing to create all map images for ECCC webs
 
 library(bbsBayes2)
 library(tidyverse)
+library(patchwork)
+library(ggrepel)
 setwd("C:/GitHub/HRE_testing")
 
 
@@ -16,14 +18,58 @@ source("functions/loess_func.R")
 # custom functions to calculate reliability categories and determine website inclusion
 
 
-
-output_dir <- "output"
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)
 
+three_gens <- read_csv("data/full_bbs_species_list_w_generation_length.csv")
 
+three_gens <- three_gens %>%
+  select(aou,GenLength)
+
+sp_list <- sp_list %>%
+  inner_join(.,three_gens,
+             by = c("aou"))
+
+avian_core <- read_csv("data/ECCC Avian Core 20230601.csv") %>%
+  rename_with(.,.fn = ~paste0(.x,"_core")) %>%
+  mutate(aou = as.integer(BBS_Number_core))
+
+rep_aou <- avian_core %>% group_by(aou) %>% summarise(n = n()) %>% filter(n > 1, !is.na(aou))
+rep_core <- avian_core %>%
+  filter(aou %in% rep_aou$aou)
+
+avian_core <- avian_core %>%
+  filter(!(aou %in% rep_aou$aou & Full_Species_core == "No"))
+
+sp_list <- sp_list %>%
+  inner_join(.,avian_core,by = "aou")
+
+nature_counts_codes <- naturecounts::meta_species_codes() %>%
+  filter(authority == "BBS2") %>%
+  mutate(species_id = ifelse(species_id2 != species_id,species_id2,species_id)) %>%
+  select(species_id,species_code) %>%
+  mutate(aou = as.integer(species_code),
+         nature_counts_species_id = species_id) %>%
+  distinct() %>%
+  select(-c(species_id,species_code))
+
+sp_list <- sp_list %>%
+  left_join(.,nature_counts_codes,
+            by = "aou")
+
+tmp2 <- sp_list %>% filter(is.na(nature_counts_species_id)) %>%
+  ungroup() %>%
+  select(aou,english,BBS_Number_core,nature_counts_species_id)
+if(nrow(tmp2) > 0){
+  stop("Species don't match with nature counts")
+}
+
+
+
+re_collect <- FALSE
 # Compile all trends and indices ------------------------------------------------------
 
+if(re_collect){
 trends <- NULL
 indices <- NULL
 indices_smooth <- NULL
@@ -56,9 +102,103 @@ for(i in 1:nrow(sp_list)){
 
 }
 
+saveRDS(trends,"output/trends_collected.rds")
+saveRDS(indices,"output/indices_collected.rds")
+saveRDS(indices_smooth,"output/indices_smooth_collected.rds")
+
+}else{
+
+
+  trends <- readRDS("output/trends_collected.rds")
+  indices <- readRDS("output/indices_collected.rds")
+  indices_smooth <- readRDS("output/indices_smooth_collected.rds")
+
+}
+
+# Compare to last year's trends -------------------------------------------
+
+core_link <- sp_list %>%
+  ungroup() %>%
+  select(Sort_Order_core,Species_ID_core,aou,nature_counts_species_id)
+
+lastyear = read_csv("data/All_2021_BBS_trends.csv")
+ly_trends_3g <- read_csv("data/All_2021_BBS_short-term_3_generation_trends.csv") %>%
+  select(species,bbs_num,Region,Region_alt,Trend_Time,Trend,Trend_Q0.05,Trend_Q0.95) %>%
+  mutate(Trend_Time = "Three-generation")
+
+ly_trends <- lastyear[,c("species","bbs_num","Region","Region_alt","Trend_Time",
+                         "Number_of_strata","Number_of_Routes",
+                         "Trend",
+                         "Trend_Q0.05","Trend_Q0.95",
+                         "Width_of_95_percent_Credible_Interval")] %>%
+  bind_rows(ly_trends_3g) %>%
+  rename(trend_2021 = Trend,
+         trend_q_0.05_2021 = Trend_Q0.05,
+         trend_q_0.95_2021 = Trend_Q0.95,
+         trend_time = Trend_Time,
+         Number_of_strata_2021 = Number_of_strata,
+         Number_of_Routes_2021 = Number_of_Routes,
+         CI_2021 = Width_of_95_percent_Credible_Interval) %>%
+  mutate(Region = ifelse(Region == "Continental","continent",Region),
+         Region = ifelse(Region_alt == "Canada","Canada",Region),
+         Region = ifelse(Region == "US","United States of America",Region)) %>%
+  filter(Region %in% c("continent","Canada","United States of America")) %>%
+  rename(region = Region) %>%
+  select(-c(species,Region_alt))
 
 
 
+trends_comp <- trends %>%
+  inner_join(.,ly_trends,
+             by = c("bbs_num",
+                    "region",
+                    "trend_time")) %>%
+  left_join(.,core_link,by = c("bbs_num" = "aou")) %>%
+  mutate(diff_trend = trend - trend_2021) %>%
+  rename(CI = width_of_95_percent_credible_interval)
+
+
+comp_xy <- ggplot(data = trends_comp,
+                  aes(x = trend_2021,
+                      y = trend,
+                      alpha = 1/CI))+
+  geom_point()+
+  geom_abline(intercept = 0,slope = 1)+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  facet_grid(cols = vars(trend_time),
+             rows = vars(region),
+             scales = "free")
+
+comp_xy
+
+
+
+trends_comp_sel <- trends_comp %>%
+  filter(diff_trend > 1 | diff_trend < -1,
+         region_type == "continent")
+
+
+comp_xy_sel <- ggplot(data = trends_comp_sel,
+                  aes(x = trend_2021,
+                      y = trend,
+                      colour = factor(bbs_num)))+
+  geom_point()+
+  geom_errorbar(aes(ymin = trend_q_0.05, ymax = trend_q_0.95),
+                alpha = 0.4)+
+  geom_errorbarh(aes(xmin = trend_q_0.05_2021, xmax = trend_q_0.95_2021),
+                 alpha = 0.4)+
+  geom_abline(intercept = 0,slope = 1)+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0)+
+  theme_bw()+
+  theme(legend.position = "none")+
+  geom_text_repel(aes(label = factor(Species_ID_core)))+
+  facet_grid(rows = vars(trend_time),
+             cols = vars(region),
+             scales = "free")
+
+comp_xy_sel
 
 
 
@@ -67,47 +207,69 @@ for(i in 1:nrow(sp_list)){
 # reconcile with template and Catherine's email
 
 
-
-
-
-
-
-
-trends_out <- trends %>%
-  filter((for_web == TRUE | region %in% c("continent","United States of America"))) %>%
+trends <- trends %>%
   mutate(prob_LD = prob_decrease_50_percent,
          prob_MD = prob_decrease_25_percent - prob_decrease_50_percent,
          prob_LC = (prob_decrease_0_percent-prob_decrease_25_percent)+(prob_increase_0_percent-prob_increase_33_percent) ,
          prob_MI = prob_increase_33_percent - prob_increase_100_percent,
-         prob_LI = prob_increase_100_percent)
+         prob_LI = prob_increase_100_percent) %>%
+  left_join(.,core_link,by = c("bbs_num" = "aou"))
 
-test_probs <- trends_out %>%
+
+test_probs <- trends %>%
   mutate(prob_test = prob_LD+prob_MD+prob_LC+prob_MI+prob_LI)
 
 if(any(round(test_probs$prob_test,2) != 1)){stop("probabilites of change categories don't sum properly")}
 
+indices_smooth <- indices_smooth %>%
+  left_join(.,core_link,by = c("bbs_num" = "aou"))
+indices <- indices %>%
+  left_join(.,core_link,by = c("bbs_num" = "aou"))
 
-trends_out <- trends_out %>%
+
+
+write_csv(indices,paste0("Website/All_BBS_Full_Indices_",YYYY,".csv"))
+write_csv(indices_smooth,paste0("Website/All_BBS_Smoothed_Indices_",YYYY,".csv"))
+write_csv(trends,paste0("Website/All_BBS_Trends_",YYYY,".csv"))
+
+
+
+
+socb_areas <- read_csv("data/SOCB_regions.csv") %>%
+  filter(results_code == "BBS") %>%
+  select(area_code,area_name)
+
+
+trends_out <- trends %>%
+  filter((for_web == TRUE | region %in% c("continent","United States of America")))
+
+trends_out2 <- trends_out  %>%
   mutate(years = paste(start_year,end_year,sep = "-"),
          results_code = "BBS",
          season = "breeding",
          version = YYYY,
-         species_id = "",
-         area_code = ifelse(Region_type == "prov_state",Region,Region_alt),
+         area_code = ifelse(region == "continent","Continental",region),
          area_code = gsub(area_code,pattern = "United States of America",
                           replacement = "USA"),
-         model_type = "GAMYE") %>%
-  rename(species_code = bbs_num,
-         species_name = species,
-         period = Trend_Time,
-         year_start = Start_year,
-         year_end = End_year,
-         trnd = Trend,
-         lower_ci = Trend_Q0.025,
-         upper_ci = Trend_Q0.975,
-         percent_change = Percent_Change,
-         percent_change_low = Percent_Change_Q0.025,
-         percent_change_high = Percent_Change_Q0.975,
+         area_code = ifelse(region_type == "bcr",paste0("BCR_",region),area_code),
+         model_type = "GAMYE",
+         index_type = "mean_predicted_count",
+         sample_size_units = "number of routes",
+         trend_time = ifelse(trend_time == "Three-generation","3Gen-Recent",trend_time)) %>%
+  left_join(.,socb_areas, by = "area_code") %>%
+  #select(-area_code) %>%
+  rename(species_name = species,
+         species_code = Species_ID_core,
+         species_id = nature_counts_species_id,
+         period = trend_time,
+         year_start = start_year,
+         year_end = end_year,
+         trnd = trend,
+         lower_ci = trend_q_0.025,
+         upper_ci = trend_q_0.975,
+         percent_change = percent_change,
+         percent_change_low = percent_change_q_0.025,
+         percent_change_high = percent_change_q_0.975,
          prob_decrease_0 = prob_decrease_0_percent,
          prob_decrease_25 = prob_decrease_25_percent,
          prob_decrease_30 = prob_decrease_30_percent,
@@ -115,13 +277,12 @@ trends_out <- trends_out %>%
          prob_increase_0 = prob_increase_0_percent,
          prob_increase_33 = prob_increase_33_percent,
          prob_increase_100 = prob_increase_100_percent,
-         confidence = reliability,
-         precision_num = Width_of_95_percent_Credible_Interval,
+         precision_num = width_of_95_percent_credible_interval,
          precision_cat = precision,
          coverage_num = reliab.cov,
          coverage_cat = coverage,
-         sample_size = Mean_Number_of_Routes,
-         sample_total = Number_of_Routes,
+         sample_size_alt = mean_n_routes,
+         sample_size = n_routes,
          prob_LD = prob_LD,
          prob_MD = prob_MD,
          prob_LC = prob_LC,
@@ -131,22 +292,24 @@ trends_out <- trends_out %>%
 
 
 
-trends_socb <- trends_out %>%
-  relocate(results_code,
-           season,
+trends_socb <- trends_out2 %>%
+  select(results_code,
            version,
-           model_type,
            area_code,
+           area_name,
+           season,
+           period,
+           species_name,
            species_code,
            species_id,
-           species_name,
-           period,
            years,
            year_start,
            year_end,
            trnd,
            lower_ci,
            upper_ci,
+           index_type,
+           model_type,
            percent_change,
            percent_change_low,
            percent_change_high,
@@ -157,13 +320,12 @@ trends_socb <- trends_out %>%
            prob_increase_0,
            prob_increase_33,
            prob_increase_100,
-           confidence,
            precision_num,
            precision_cat,
            coverage_num,
            coverage_cat,
            sample_size,
-           sample_total,
+           sample_size_units,
            prob_LD,
            prob_MD,
            prob_LC,
@@ -177,56 +339,72 @@ readr::write_excel_csv(trends_socb,
 
 # SOCB indices ------------------------------------------------------------
 
-indices_round <- readRDS("output/allindices.rds")
-smooth_indices_round <- readRDS("output/allsmooth_indices.rds")
-smooth_join <- smooth_indices_round %>%
+
+smooth_join <- indices_smooth %>%
   select(species,region,region_type,trend_time,
          year,index) %>%
   rename(smooth_index = index)
 
-indices_socb <- indices_round %>%
-  filter((For_web == TRUE | Region %in% c("Continental","US"))) %>%
+indices_socb <- indices %>%
+  filter((for_web == TRUE | region %in% c("continent","United States of America"))) %>%
   inner_join(.,smooth_join,
              by = c("species",
-                    "Region",
-                    "Region_type",
-                    "Trend_Time",
-                    "Year")) %>%
-  group_by(species,Region,Region_type,Trend_Time) %>%
-  mutate(LOESS_index = loess_func(Index,Year),
-         area_code = ifelse(Region_type == "prov_state",Region,Region_alt),
-         area_code = gsub(area_code,pattern = "United States of America",
-                          replacement = "USA"),
+                    "region",
+                    "region_type",
+                    "trend_time",
+                    "year")) %>%
+  group_by(species,region,region_type,trend_time) %>%
+  mutate(LOESS_index = loess_func(index,year),
          results_code = "BBS",
          season = "breeding",
          version = YYYY,
-         model_type = "GAMYE") %>%
+         area_code = ifelse(region == "continent","Continental",region),
+         area_code = gsub(area_code,pattern = "United States of America",
+                          replacement = "USA"),
+         area_code = ifelse(region_type == "bcr",paste0("BCR_",region),area_code),
+         trend_time = ifelse(trend_time == "Three-generation","3Gen-Recent",trend_time)) %>%
   ungroup() %>%
-  rename(species_code = bbs_num,
-         species_id = species,
-         index = Index,
-         year = Year,
-         period = Trend_Time,
-         upper_ci = Index_q_0.95,
-         lower_ci = Index_q_0.05) %>%
-  select(-c(Index_q_0.025,
-            Index_q_0.975,
-            Region_type,
-            Region)) %>%
+  inner_join(.,socb_areas, by = "area_code") %>%
+  #select(-area_code) %>%
+  rename(species_name = species,
+         species_code = Species_ID_core,
+         species_id = nature_counts_species_id,
+         period = trend_time,
+         upper_ci = index_q_0.95,
+         lower_ci = index_q_0.05) %>%
+  select(-c(index_q_0.025,
+            index_q_0.975,
+            region_type,
+            region)) %>%
   relocate(results_code,
-           season,
            version,
-           model_type,
            area_code,
-           year,
+           season,
            period,
+           species_name,
            species_code,
            species_id,
+           year,
            index,
            upper_ci,
            lower_ci,
            LOESS_index,
-           smooth_index)
+           smooth_index) %>%
+  select(results_code,
+         version,
+         area_code,
+         area_name,
+         season,
+         period,
+         species_name,
+         species_code,
+         species_id,
+         year,
+         index,
+         upper_ci,
+         lower_ci,
+         LOESS_index,
+         smooth_index)
 
 readr::write_excel_csv(indices_socb,
                        file = paste0("website/BBS_",YYYY,"_annual_indices_for_socb.csv"))

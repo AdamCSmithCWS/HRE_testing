@@ -6,14 +6,14 @@ library(doParallel)
 library(patchwork)
 
 YYYY <- 2022
-short_time <- 10
+short_time <- 12
 
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 setwd("C:/GitHub/HRE_testing")
 
 output_dir <- "output"
-n_cores = 12
-
+n_cores = 10
+re_run <- FALSE
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)
@@ -26,6 +26,7 @@ lastyear = read_csv("data/All_2021_BBS_trends.csv")
 covs = lastyear[,c("species","bbs_num","Region","Region_alt","Trend_Time","reliab.cov")]
 
 lastyear_inds <- read_csv("data/All_2021_BBS_indices.csv")
+lastyear_inds_smooth <- read_csv("data/All_2021_BBS_smooth_indices.csv")
 
 
 # build cluster -----------------------------------------------------------
@@ -50,7 +51,8 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                           replacement = "_")
 
 
-    if(file.exists(paste0("Indices/Inds_",aou,".rds"))){
+    if(file.exists(paste0("Indices/Inds_",aou,".rds")) &
+       (!file.exists(paste0("Figures/temp_rds_storage/",aou,"_highlevel_trajs.RDS")) | re_run)){
 
 
 
@@ -74,6 +76,10 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
 
       lastyear_inds_sp <- lastyear_inds %>%
+        filter(bbs_num == aou,
+               Trend_Time == "Long-term")
+
+      lastyear_inds_smooth_sp <- lastyear_inds_smooth %>%
         filter(bbs_num == aou,
                Trend_Time == "Long-term")
 
@@ -165,6 +171,9 @@ test <- foreach(i = rev(1:nrow(sp_list)),
           ly_inds <- lastyear_inds_sp %>%
             filter(Region_alt == rr |
                      Region == rr)
+          ly_inds_smooth <- lastyear_inds_smooth_sp %>%
+            filter(Region_alt == rr |
+                     Region == rr)
 
           if(j == "continent"){
             ly_inds <- lastyear_inds_sp %>%
@@ -183,11 +192,15 @@ test <- foreach(i = rev(1:nrow(sp_list)),
             geom_line(data = ly_inds,
                         aes(x = Year,
                             y = Index_q_0.05),
-                        colour = "darkgreen",alpha = 0.2, linetype = 6)+
+                        colour = "darkgreen",alpha = 0.3, linetype = 6)+
             geom_line(data = ly_inds,
                       aes(x = Year,
                           y = Index_q_0.95),
-                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
+                      colour = "darkgreen",alpha = 0.3, linetype = 6)+
+            geom_line(data = ly_inds_smooth,
+                      aes(x = Year,
+                          y = Index),
+                      colour = "darkgreen",alpha = 0.4, linetype = 6)+
             geom_pointrange(data = raw_tmp,
                             aes(x = year-0.1,y = mean_obs_eff,
                                 ymin = q25_obs,ymax = q75_obs),
@@ -220,11 +233,15 @@ test <- foreach(i = rev(1:nrow(sp_list)),
             geom_line(data = ly_inds,
                       aes(x = Year,
                           y = Index_q_0.05),
-                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
+                      colour = "darkgreen",alpha = 0.3, linetype = 6)+
             geom_line(data = ly_inds,
                       aes(x = Year,
                           y = Index_q_0.95),
-                      colour = "darkgreen",alpha = 0.2, linetype = 6)+
+                      colour = "darkgreen",alpha = 0.3, linetype = 6)+
+            geom_line(data = ly_inds_smooth,
+                      aes(x = Year,
+                          y = Index),
+                      colour = "darkgreen",alpha = 0.4, linetype = 6)+
 
             labs(subtitle = labl)
           traj_out[[j]] <- t1save
@@ -274,7 +291,9 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     traj_out <- vector("list",3)
     names(traj_out) <- c("continent","Canada","United_States_of_America")
 
-    if(file.exists(paste0("Indices/Inds_",aou,".rds"))){
+    if(file.exists(paste0("Indices/Inds_",aou,".rds")) &
+       (!file.exists(paste0("Figures/temp_rds_storage/",aou,"_highlevel_simple_trajs.RDS")) | re_run)){
+
 
 
 
@@ -307,6 +326,14 @@ test <- foreach(i = rev(1:nrow(sp_list)),
                             axis_title_size = 10,
                             axis_text_size = 10)
 
+
+      lastyear_inds_sp <- lastyear_inds %>%
+        filter(bbs_num == aou,
+               Trend_Time == "Long-term")
+
+      lastyear_inds_smooth_sp <- lastyear_inds_smooth %>%
+        filter(bbs_num == aou,
+               Trend_Time == "Long-term")
 
 
       pdf(file = paste0("Figures/Trajectories/",species_f_bil,"_trajectories.pdf"),width = 11,height = 8.5)
@@ -348,7 +375,38 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
         if(j %in% c("continent","Canada","United_States_of_America")){
 
-          traj_out[[j]] <- t1plot
+          ly_inds <- lastyear_inds_sp %>%
+            filter(Region_alt == rr |
+                     Region == rr)
+          ly_inds_smooth <- lastyear_inds_smooth_sp %>%
+            filter(Region_alt == rr |
+                     Region == rr)
+
+          if(j == "continent"){
+            ly_inds <- lastyear_inds_sp %>%
+              filter(Region_alt == "Continental")
+          }
+
+      if(nrow(ly_inds) > 0){
+          tmpPlot <- t1plot +
+            geom_line(data = ly_inds,
+                      aes(x = Year,
+                          y = Index_q_0.05),
+                      colour = "darkgreen",alpha = 0.3, linetype = 6)+
+            geom_line(data = ly_inds,
+                      aes(x = Year,
+                          y = Index_q_0.95),
+                      colour = "darkgreen",alpha = 0.3, linetype = 6)+
+            geom_line(data = ly_inds_smooth,
+                      aes(x = Year,
+                          y = Index),
+                      colour = "darkgreen",alpha = 0.4, linetype = 6)
+
+          traj_out[[j]] <- tmpPlot
+      }else{
+        traj_out[[j]] <- t1plot
+      }
+
         }
 
 
