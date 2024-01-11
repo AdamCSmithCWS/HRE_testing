@@ -8,8 +8,12 @@ library(doParallel)
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 setwd("C:/GitHub/HRE_testing")
 
+# set output_dir to the directory where the saved modeling output rds files are stored
 output_dir <- "D:/output_BBS"
-n_cores = 3
+# output_dir <- "output"
+# output_dir <- "F:/HRE_testing/output"
+
+n_cores = 3 # if desired, can be run in parallel across many species
 
 re_run <- FALSE
 

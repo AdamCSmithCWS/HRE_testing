@@ -9,6 +9,9 @@ library(doParallel)
 #setwd("C:/github/HRE_testing")
 setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
+
+# set output_dir to the directory where the saved modeling output rds files will be stored
+# necessary on most systems because these output files are very large ( up to 5GB for broad-ranging species)
 output_dir <- "F:/HRE_testing/output"
 #output_dir <- "output"
 
@@ -47,10 +50,10 @@ if(re_run){
 #                              simplify = TRUE))
 # sp_list <- sp_list %>%
 #     filter(!aou %in% completed_aou)
-
-sp_list <- sp_list %>% filter(!aou %in% c(6882,5630,4090))
-
-i <- which(sp_list$aou == 6882)
+#
+# sp_list <- sp_list %>% filter(!aou %in% c(6882,5630,4090))
+#
+# i <- which(sp_list$aou == 6882)
 # build cluster -----------------------------------------------------------
 
 

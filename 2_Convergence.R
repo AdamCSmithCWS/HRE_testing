@@ -8,9 +8,13 @@ library(doParallel)
 #setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 setwd("C:/GitHub/HRE_testing")
 
+
+# set output_dir to the directory where the saved modeling output rds files are stored
+output_dir <- "D:/output_BBS"
 # output_dir <- "output"
 # output_dir <- "F:/HRE_testing/output"
-output_dir <- "D:/output_BBS"
+
+
 
 n_cores = 2
 re_run <- FALSE # set to TRUE if re-assessing convergence of models
