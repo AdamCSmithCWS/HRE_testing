@@ -15,7 +15,8 @@ output_dir <- "D:/output_BBS"
 
 n_cores = 3 # if desired, can be run in parallel across many species
 
-re_run <- FALSE
+re_run <- FALSE # if TRUE will recalculate and overwrite previous saved indices for each species
+# if FALSE, will skip species with saved indices files
 
 sp_list <- readRDS("species_list.rds") %>%
   filter(model == TRUE)

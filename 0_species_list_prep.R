@@ -1,4 +1,6 @@
 ### setup up HRE run for bbs
+## generate list of species with simple data summaries
+## identify which species to run and sort them into parallel-run groups (column "vm")
 
 library(bbsBayes2)
 library(tidyverse)
@@ -39,7 +41,7 @@ sp_list <- sp_sum %>%
 
 sp_list_mod <- sp_list %>%
   filter(model)
-sp_list_mod[,"vm"] <- rep(1:10,length.out = nrow(sp_list_mod))
+sp_list_mod[,"vm"] <- rep(1:10,length.out = nrow(sp_list_mod)) # setting a permanent list of which species go to which vms
 
 
 
@@ -47,6 +49,8 @@ sp_list_mod[,"vm"] <- rep(1:10,length.out = nrow(sp_list_mod))
 
 
 saveRDS(sp_list_mod, "species_list.rds")
+
+
 
 
 
