@@ -6,10 +6,10 @@ shhh(library(tidyverse))
 library(foreach)
 library(doParallel)
 
-#setwd("C:/github/HRE_testing")
+setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-machine = c(4,5,6,7,8,9,10)
-n_cores = 4
+machine = c(1:3)#c(4,5,6,7,8,9,10)
+n_cores = 10
 
 re_run <- FALSE # set to TRUE if re-running poorly converged models
 
@@ -18,7 +18,7 @@ already <- readRDS("completed.rds") %>%
 
 
 miss <- FALSE
-output_dir <- "output"
+output_dir <- "F:/HRE_testing/output"
 
 if(re_run){
 sp_list <- readRDS("species_list.rds") %>%
@@ -61,7 +61,7 @@ cluster <- makeCluster(n_cores, type = "PSOCK")
 registerDoParallel(cluster)
 
 
-test <- foreach(i = c(nrow(sp_list):(nrow(sp_list)-50)),
+test <- foreach(i = c(171:141),
         .packages = c("bbsBayes2",
                       "tidyverse",
                       "cmdstanr"),

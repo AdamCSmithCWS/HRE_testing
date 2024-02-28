@@ -1,0 +1,59 @@
+aou,english,french,species,n_obs,n_birds,n_routes,n_years,model,vm,error
+3160,Mourning Dove,Tourterelle triste,macroura,105827,3346270,4182,56,TRUE,3,"Error in data.table::fread(cmd = fread_cmd, select = variables, data.table = FALSE): R character strings are limited to 2^31-1 bytes
+"
+6130,Barn Swallow,Hirondelle rustique,rustica,96091,1724266,4174,56,TRUE,2,"Error: cannot allocate vector of size 1.2 Mb
+"
+3370,Red-tailed Hawk (all forms),Buse à queue rousse (toutes les formes),jamaicensis,55579,140481,4139,56,TRUE,1,"Error in data.table::fread(cmd = fread_cmd, select = sampler_diagnostics, : Opened 3.434GB (3687594371 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+1940,Great Blue Heron,Grand Héron,herodias,41650,114448,3517,56,TRUE,3,completed
+3600,American Kestrel,Crécerelle d'Amérique,sparverius,39187,88119,3512,56,TRUE,2,"Error in data.table::fread(cmd = fread_cmd, select = sampler_diagnostics, : Opened 3.072GB (3298380140 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+3940,Downy Woodpecker,Pic mineur,pubescens,59249,186001,3490,56,TRUE,1,"Error: cannot allocate vector of size 2.4 Gb
+"
+4440,Eastern Kingbird,Tyran tritri,tyrannus,69979,424192,3340,56,TRUE,3,"Error in data.table::fread(cmd = fread_cmd, select = variables, data.table = FALSE): Opened 2.592GB (2783607436 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+3131,Rock Pigeon,Pigeon biset,livia,53214,739411,3310,56,TRUE,2,completed
+6240,Red-eyed Vireo,Viréo aux yeux rouges,olivaceus,67088,1245655,3235,56,TRUE,1,completed
+5190,House Finch,Roselin familier,mexicanus,43743,575967,2993,56,TRUE,3,completed
+7210,House Wren,Troglodyte familier,aedon,60259,609445,2992,56,TRUE,2,"Error: cannot allocate vector of size 8.6 Gb
+"
+7040,Gray Catbird,Moqueur chat,carolinensis,59482,511008,2931,56,TRUE,1,"Error: Supplied CSV file is corrupt!
+"
+7030,Northern Mockingbird,Moqueur polyglotte,polyglottos,55042,1318486,2640,56,TRUE,3,"Error in data.table::fread(cmd = fread_cmd, colClasses = ""character"", : File 'C:\Users\SmithAC\AppData\Local\Temp\Rtmpc1HZVp\file55144f706895' does not exist or is non-readable. getwd()=='C:/Users/SmithAC/Documents/GitHub/HRE_testing'
+"
+4200,Common Nighthawk,Engoulevent d'Amérique,minor,26837,159736,2631,56,TRUE,2,"Error: No chains finished successfully. Unable to retrieve the draws.
+"
+7270,White-breasted Nuthatch,Sittelle à poitrine blanche,carolinensis,41418,155614,2617,56,TRUE,1,"Error in data.table::fread(cmd = fread_cmd, select = variables, data.table = FALSE): Opened 2.026GB (2175407001 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+4230,Chimney Swift,Martinet ramoneur,pelagica,54094,544386,2464,56,TRUE,3,"Error in data.table::fread(cmd = fread_cmd, select = variables, data.table = FALSE): Opened 1.773GB (1903713959 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+4610,Eastern Wood-Pewee,Pioui de l'Est,virens,56251,302317,2435,56,TRUE,2,"Error: No chains finished successfully. Unable to retrieve the draws.
+"
+5010,Eastern Meadowlark,Sturnelle des prés,magna,57732,1199855,2434,56,TRUE,1,"Error: cannot allocate vector of size 1.6 Gb
+"
+3330,Cooper's Hawk,Épervier de Cooper,cooperii,6818,7861,2243,56,TRUE,3,"Error: cannot allocate vector of size 54.6 Mb
+"
+6870,American Redstart,Paruline flamboyante,ruticilla,31739,236875,2242,56,TRUE,2,"Error: cannot allocate vector of size 54.6 Mb
+"
+5070,Baltimore Oriole,Oriole de Baltimore,galbula,45486,264703,2224,56,TRUE,1,"Error: cannot allocate vector of size 1.5 Gb
+"
+2300,Wilson's Snipe,Bécassine de Wilson,delicata,24700,163258,2087,56,TRUE,3,"Error: cannot allocate vector of size 54.6 Mb
+"
+7550,Wood Thrush,Grive des bois,mustelina,47429,437060,2075,56,TRUE,2,"Error: cannot allocate vector of size 54.6 Mb
+"
+3310,Northern Harrier,Busard des marais,hudsonius,14534,28670,2074,56,TRUE,1,"Error: cannot allocate vector of size 54.6 Mb
+"
+6295,Solitary Vireo (Blue-headed/Cassin's),Viréo à tête bleue (à tête bleue/de Cassin),cassinii / solitarius,24084,115172,2006,56,TRUE,3,"Error: cannot allocate vector of size 54.6 Mb
+"
+7280,Red-breasted Nuthatch,Sittelle à poitrine rousse,canadensis,23761,141650,2004,56,TRUE,2,"Error: cannot allocate vector of size 1.5 Gb
+"
+6160,Bank Swallow,Hirondelle de rivage,riparia,15726,231184,1974,56,TRUE,1,"Error: cannot allocate vector of size 54.6 Mb
+"
+6480,Northern Parula,Paruline à collier,americana,25168,135891,1856,56,TRUE,3,"Error in data.table::fread(cmd = fread_cmd, select = sampler_diagnostics, : Opened 1.368GB (1469256280 bytes) file ok but could not memory map it. This is a 64bit process. There is probably not enough contiguous virtual memory available.
+"
+4660,Willow Flycatcher,Moucherolle des saules,traillii,22657,96014,1854,56,TRUE,2,"Error: cannot allocate vector of size 4.4 Gb
+"
+22860,Eurasian Collared-Dove,Tourterelle turque,decaocto,12643,89128,1821,36,TRUE,1,"Error: No chains finished successfully. Unable to retrieve the draws.
+"
+3880,Black-billed Cuckoo,Coulicou à bec noir,erythropthalmus,14376,34468,1722,56,TRUE,3,"Error: No chains finished successfully. Unable to retrieve the draws.
+"
