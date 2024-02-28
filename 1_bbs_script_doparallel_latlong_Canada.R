@@ -10,8 +10,8 @@ library(sf)
 #setwd("C:/github/HRE_testing")
 setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-#output_dir <- "F:/HRE_testing/output"
-output_dir <- "output"
+output_dir <- "F:/HRE_testing/output"
+#output_dir <- "output"
 
 
 canada <- load_map("prov_state") %>%
@@ -22,7 +22,7 @@ canada <- load_map("prov_state") %>%
   select(country) %>%
   rename(near_canada = country)
 
-countries <- load_map("prov_state") #%>%
+countries <- load_map("prov_state") %>%
   select(country_code) %>%
   group_by(country_code) %>%
   summarise()
@@ -60,42 +60,45 @@ re_run <- FALSE # set to TRUE if re-running poorly converged models and have a l
 
 
 miss <- FALSE
-csv_recover <- TRUE
-machine = NULL
-machine = 2#9 #as of Nov 30, machine 8 remains to be run
-n_cores = 8
+csv_recover <- FALSE
+machine = NULL#c(1:3)#c(4,5,6,7,8,9,10)
+n_cores = 12
 
+re_run <- FALSE # set to TRUE if re-running poorly converged models
+
+sp_list <- readRDS("completed.rds") %>%
+  filter(is.na(test))
 #n_cores <- floor((detectCores()-1)/4) # requires 4 cores per species
-
-if(!is.null(machine)){
-sp_list <- readRDS("species_list.rds") %>%
-  filter(vm %in% machine,
-         model == TRUE)
-}else{
-  sp_list <- readRDS("species_list.rds") %>%
-    filter(model == TRUE)
-}
-
-if(miss){
-  sp_list <- readRDS("species_missing.rds") %>%
-    filter(model == TRUE)
-}
-
-if(re_run){
-  sp_list <- sp_list %>%
-    filter(english %in% sp_rerun)
-}
-# completed_files <- list.files("output",pattern = "fit_")
-# completed_aou <- as.integer(str_extract_all(completed_files,
-#                              "[[:digit:]]{1,}",
-#                              simplify = TRUE))
-# sp_list <- sp_list %>%
-#     filter(!aou %in% completed_aou)
-
-# sp_list <- sp_list %>% filter(!aou %in% c(6882,5630,4090))
-
-i <- which(sp_list$aou == 7610)
-# build cluster -----------------------------------------------------------
+#
+# if(!is.null(machine)){
+# sp_list <- readRDS("species_list.rds") %>%
+#   filter(vm %in% machine,
+#          model == TRUE)
+# }else{
+#   sp_list <- readRDS("species_list.rds") %>%
+#     filter(model == TRUE)
+# }
+#
+# if(miss){
+#   sp_list <- readRDS("species_missing.rds") %>%
+#     filter(model == TRUE)
+# }
+#
+# if(re_run){
+#   sp_list <- sp_list %>%
+#     filter(english %in% sp_rerun)
+# }
+# # completed_files <- list.files("output",pattern = "fit_")
+# # completed_aou <- as.integer(str_extract_all(completed_files,
+# #                              "[[:digit:]]{1,}",
+# #                              simplify = TRUE))
+# # sp_list <- sp_list %>%
+# #     filter(!aou %in% completed_aou)
+#
+# # sp_list <- sp_list %>% filter(!aou %in% c(6882,5630,4090))
+#
+# i <- which(sp_list$aou == 7610)
+# # build cluster -----------------------------------------------------------
 
 
 cluster <- makeCluster(n_cores, type = "PSOCK")
@@ -113,7 +116,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
     sp <- as.character(sp_list[i,"english"])
     aou <- as.integer(sp_list[i,"aou"])
 
-    if(!file.exists(paste0(output_dir,"/fit_latlong_",aou,".rds")) |
+    if(!file.exists(paste0(output_dir,"/fit_latlong_can_",aou,".rds")) |
        re_run){
 
 # identifying first years for selected species ----------------------------
@@ -159,7 +162,7 @@ test <- foreach(i = rev(1:nrow(sp_list)),
 
    if(csv_recover){
      fit <- bbs_dat
-     csv_files <- paste0(output_dir,"/fit_latlong_",aou,"-",c(2:4),".csv")
+     csv_files <- paste0(output_dir,"/fit_latlong_can_",aou,"-",c(1:4),".csv")
       fit[["model_fit"]] <- cmdstanr::as_cmdstan_fit(files = csv_files)
       save_model_run(fit,retain_csv = TRUE)
 
@@ -172,13 +175,13 @@ fit <- run_model(model_data = bbs_dat,
                  iter_sampling = 2000,
                  thin = 2,
                  output_dir = output_dir,
-                 output_basename = paste0("fit_latlong_",aou))
+                 output_basename = paste0("fit_latlong_can_",aou))
 
 }else{
   fit <- run_model(model_data = bbs_dat,
                    refresh = 400,
                    output_dir = output_dir,
-                   output_basename = paste0("fit_latlong_",aou))
+                   output_basename = paste0("fit_latlong_can_",aou))
 
 }
 
@@ -190,9 +193,9 @@ fit <- run_model(model_data = bbs_dat,
 
 parallel::stopCluster(cluster)
 
-inds <- generate_indices(fit)
-trends <- generate_trends(inds)
-
-map <- plot_map(trends, strata_custom = lat_long_canada)
-map
+# inds <- generate_indices(fit)
+# trends <- generate_trends(inds)
+#
+# map <- plot_map(trends, strata_custom = lat_long_canada)
+# map
 

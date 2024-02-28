@@ -8,15 +8,18 @@ library(doParallel)
 
 setwd("C:/Users/SmithAC/Documents/GitHub/HRE_testing")
 
-machine = c(1:3)#c(4,5,6,7,8,9,10)
-n_cores = 10
+machine = NULL#c(1:3)#c(4,5,6,7,8,9,10)
+n_cores = 12
 
 re_run <- FALSE # set to TRUE if re-running poorly converged models
 
 already <- readRDS("completed.rds") %>%
   filter(is.na(test))
-
-
+#
+#   already <- already %>%
+#     mutate(test = ifelse(aou %in% aoudone,"Complete",test))
+#
+#   saveRDS(already,"completed.rds")
 miss <- FALSE
 output_dir <- "F:/HRE_testing/output"
 
